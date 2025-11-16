@@ -89,39 +89,7 @@ docker-compose exec backend php artisan migrate --seed
 
 ## 🔑 Real-Time Broadcasting Setup
 
-### Option 1: Laravel Echo Server (Local Development - No External Service Required)
-
-The project includes Laravel Echo Server with Socket.io for local development:
-
-1. **Using Docker (Recommended):**
-   ```bash
-   docker-compose up -d
-   ```
-   Services included: MySQL, Laravel, Vue.js, Redis, Echo Server
-
-2. **Configuration (already set in `.env.example`):**
-
-   Backend `.env`:
-   ```env
-   BROADCAST_CONNECTION=redis
-   REDIS_CLIENT=predis
-   REDIS_HOST=redis
-   ```
-
-   Frontend `.env`:
-   ```env
-   VITE_USE_SOCKET_IO=true
-   VITE_ECHO_SERVER_HOST=localhost:6001
-   ```
-
-3. **Access:**
-   - Frontend: http://localhost:5173
-   - Backend: http://localhost:8000
-   - Echo Server: http://localhost:6001
-
-📖 **Detailed Guide:** See [ECHO_SERVER_SETUP.md](./ECHO_SERVER_SETUP.md) for complete instructions
-
-### Option 2: Pusher (Production)
+### Pusher Configuration
 
 1. Create a free account at [pusher.com](https://pusher.com)
 2. Create a new Channels app
@@ -132,10 +100,14 @@ The project includes Laravel Echo Server with Socket.io for local development:
    PUSHER_APP_KEY=your-app-key
    PUSHER_APP_SECRET=your-app-secret
    PUSHER_APP_CLUSTER=your-cluster
+
+   QUEUE_CONNECTION=redis
+   REDIS_CLIENT=predis
+   REDIS_HOST=redis
+   REDIS_PORT=6379
    ```
-4. Copy key to frontend `.env`:
+4. Copy credentials to frontend `.env`:
    ```env
-   VITE_USE_SOCKET_IO=false
    VITE_PUSHER_APP_KEY=your-app-key
    VITE_PUSHER_APP_CLUSTER=your-cluster
    ```
@@ -170,46 +142,6 @@ After running seeders, you'll have these test accounts:
     "amount": 100.00
   }
   ```
-
-## 🏗️ Architecture
-
-### Backend (Laravel)
-
-**Database Schema:**
-- `users`: id, uid, name, email, password, balance, is_admin
-- `transactions`: id, tuuid, sender_id, receiver_id, amount, commission_fee, type, status
-
-**Key Components:**
-- `TransferService`: Core business logic with pessimistic locking
-- `TransactionController`: API endpoints
-- `UserResource` & `TransactionResource`: API response formatting
-- `TransactionCreated` event: Pusher broadcasting
-
-**Concurrency Strategy:**
-- Pessimistic locking (`SELECT ... FOR UPDATE`)
-- Ordered locking (lock lower ID first) prevents deadlocks
-- Atomic transactions with automatic rollback
-
-### Frontend (Vue.js)
-
-**Structure:**
-- `stores/auth.js`: Authentication state management
-- `stores/wallet.js`: Transaction and balance management
-- `services/api.js`: Axios HTTP client
-- `services/echo.js`: Laravel Echo/Pusher integration
-
-**Views:**
-- `/login` - User login
-- `/register` - User registration
-- `/dashboard` - Main dashboard with stats and quick transfer
-- `/transactions` - Full transaction history with filters
-
-**Components:**
-- `AppHeader.vue` - Navigation header with menu and user info
-- `AppLayout.vue` - Layout wrapper with header and footer
-- `TransferForm.vue` - Send money form (supports compact mode)
-- `BalanceCard.vue` - Display current balance
-- `TransactionList.vue` - Transaction history table
 
 ## 💡 Usage
 
@@ -290,6 +222,8 @@ ab -n 100 -c 10 -p transfer.json -T application/json -H "Authorization: Bearer Y
 - Verify Pusher credentials in both backend and frontend `.env`
 - Check browser console for WebSocket errors
 - Enable Pusher debug console
+- Ensure Redis is running and queue worker is active: `docker-compose logs queue`
+- Verify queue worker is processing jobs: Check for "Processing:" messages in queue logs
 
 **CORS errors**
 - Verify `FRONTEND_URL` in backend `.env`
