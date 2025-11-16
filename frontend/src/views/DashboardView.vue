@@ -111,7 +111,7 @@
                     <p class="mb-0 fw-bold" :class="getAmountClass(transaction)">
                       {{ getAmountPrefix(transaction) }}${{ transaction.amount }}
                     </p>
-                    <small class="text-muted">Fee: ${{ transaction.commission_fee }}</small>
+                    <small v-if="transaction.commission_fee" class="text-muted">Fee: ${{ transaction.commission_fee }}</small>
                   </div>
                 </div>
               </div>
@@ -123,14 +123,17 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useWalletStore } from '../stores/wallet'
 import AppLayout from '../components/AppLayout.vue'
 import TransferForm from '../components/TransferForm.vue'
+import { initEcho, disconnectEcho } from '../services/echo'
 
 const authStore = useAuthStore()
 const walletStore = useWalletStore()
+
+let echoInstance = null
 
 const recentTransactions = computed(() => {
   return walletStore.transactions.slice(0, 5)
@@ -138,14 +141,45 @@ const recentTransactions = computed(() => {
 
 const totalSpent = computed(() => {
   const spent = walletStore.transactions
-    .filter(t => t.sender?.uid === authStore.user?.uid)
+    .filter(t => isSentByCurrentUser(t))
     .reduce((sum, t) => sum + parseFloat(t.amount) + parseFloat(t.commission_fee), 0)
   return spent.toFixed(2)
 })
 
-onMounted(() => {
+function isSentByCurrentUser(transaction) {
+
+  console.log({
+    transaction,
+    user:authStore.user
+  })
+  // Check by uid if both exist, otherwise check by email
+  if (transaction.sender?.uid && authStore.user?.uid) {
+    return transaction.sender.uid === authStore.user.uid
+  }
+  return transaction.sender?.email === authStore.user?.email
+}
+
+onMounted(async () => {
   if (walletStore.transactions.length === 0) {
-    walletStore.fetchTransactions()
+    await walletStore.fetchTransactions()
+  }
+
+  // Initialize Laravel Echo for real-time updates
+  echoInstance = initEcho(authStore.token)
+  if (echoInstance && authStore.user) {
+    console.log('Subscribing to channel:', `user.${authStore.user.id}`)
+    echoInstance.private(`user.${authStore.user.id}`)
+      .listen('TransactionCreated', (e) => {
+        console.log('Real-time transaction received:', e)
+        walletStore.addTransaction(e.transaction)
+        walletStore.fetchTransactions() // Refresh to update balance
+      })
+  }
+})
+
+onUnmounted(() => {
+  if (echoInstance) {
+    disconnectEcho(echoInstance)
   }
 })
 
@@ -154,7 +188,7 @@ function handleTransferSent() {
 }
 
 function getTransactionTitle(transaction) {
-  if (transaction.sender?.uid === authStore.user?.uid) {
+  if (isSentByCurrentUser(transaction)) {
     return `Sent to ${transaction.receiver?.name}`
   } else {
     return `Received from ${transaction.sender?.name}`
@@ -163,7 +197,7 @@ function getTransactionTitle(transaction) {
 
 function getTransactionIcon(transaction) {
   if (transaction.type === 'commission') return 'bi bi-percent'
-  if (transaction.sender?.uid === authStore.user?.uid) {
+  if (isSentByCurrentUser(transaction)) {
     return 'bi bi-arrow-up-right'
   }
   return 'bi bi-arrow-down-left'
@@ -171,21 +205,21 @@ function getTransactionIcon(transaction) {
 
 function getTransactionIconClass(transaction) {
   if (transaction.type === 'commission') return 'bg-warning bg-opacity-10 text-warning'
-  if (transaction.sender?.uid === authStore.user?.uid) {
+  if (isSentByCurrentUser(transaction)) {
     return 'bg-danger bg-opacity-10 text-danger'
   }
   return 'bg-success bg-opacity-10 text-success'
 }
 
 function getAmountClass(transaction) {
-  if (transaction.sender?.uid === authStore.user?.uid) {
+  if (isSentByCurrentUser(transaction)) {
     return 'text-danger'
   }
   return 'text-success'
 }
 
 function getAmountPrefix(transaction) {
-  if (transaction.sender?.uid === authStore.user?.uid) {
+  if (isSentByCurrentUser(transaction)) {
     return '- '
   }
   return '+ '

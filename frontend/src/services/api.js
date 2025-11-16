@@ -44,7 +44,8 @@ export const authAPI = {
 }
 
 export const userAPI = {
-  getUsers: () => api.get('/users')
+  getUsers: () => api.get('/users'),
+  searchUsers: (query) => api.get(`/users/search?q=${encodeURIComponent(query)}`)
 }
 
 export const transactionAPI = {

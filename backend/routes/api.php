@@ -28,6 +28,28 @@ Route::middleware('auth:sanctum')->group(function () {
         return UserResource::collection($users);
     });
 
+    // Search users by email or name
+    Route::get('/users/search', function (Request $request) {
+        $query = $request->input('q');
+
+        if (!$query || strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        $users = \App\Models\User::where('id', '!=', $request->user()->id)
+            ->where('is_admin', false)
+            ->where(function($q) use ($query) {
+                $q->where('email', 'like', '%' . $query . '%')
+                  ->orWhere('name', 'like', '%' . $query . '%')
+                  ->orWhere('uid', 'like', '%' . $query . '%');
+            })
+            ->select('id', 'uid', 'name', 'email')
+            ->limit(10)
+            ->get();
+
+        return UserResource::collection($users);
+    });
+
     // Transaction routes
     Route::get('/transactions', [TransactionController::class, 'index']);
     Route::post('/transactions', [TransactionController::class, 'store']);

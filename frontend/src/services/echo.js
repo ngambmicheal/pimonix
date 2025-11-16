@@ -12,7 +12,7 @@ export function initEcho(token) {
 
   echoInstance = new Echo({
     broadcaster: 'pusher',
-    key: import.meta.env.VITE_PUSHER_APP_KEY || 'your-pusher-key',
+    key: import.meta.env.VITE_PUSHER_APP_KEY,
     cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER || 'mt1',
     forceTLS: true,
     auth: {
@@ -20,7 +20,13 @@ export function initEcho(token) {
         Authorization: `Bearer ${token}`
       }
     },
-    authEndpoint: 'http://localhost:8000/broadcasting/auth'
+    authEndpoint: `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/broadcasting/auth`
+  })
+
+  console.log('Echo initialized with Pusher:', {
+    key: import.meta.env.VITE_PUSHER_APP_KEY,
+    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+    authEndpoint: `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/broadcasting/auth`
   })
 
   return echoInstance

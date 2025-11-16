@@ -30,13 +30,6 @@ import AppHeader from './AppHeader.vue'
   padding: 0;
 }
 
-.main-content {
-  width: 100%;
-  padding: 2rem 0;
-  background-color: #f8f9fa;
-  justify-content: center;
-}
-
 .content-wrapper {
   width: 90%;
   max-width: 1400px;
@@ -49,27 +42,7 @@ import AppHeader from './AppHeader.vue'
   background-color: white;
   border-top: 1px solid #dee2e6;
   margin-top: auto;
-  display: flex;
   justify-content: center;
 }
 
-.footer-wrapper {
-  width: 80%;
-  max-width: 1400px;
-  text-align: center;
-}
-
-@media (max-width: 992px) {
-  .content-wrapper,
-  .footer-wrapper {
-    width: 90%;
-  }
-}
-
-@media (max-width: 768px) {
-  .content-wrapper,
-  .footer-wrapper {
-    width: 95%;
-  }
-}
 </style>

@@ -93,16 +93,16 @@
                           </span>
                         </td>
                         <td>
-                          <div v-if="transaction.sender?.uid === authStore.user?.uid">
+                          <div v-if="isSentByCurrentUser(transaction)">
                             <small class="text-muted d-block">To:</small> <strong>{{ transaction.receiver?.name }}</strong>
                             <br />
-                            <small class="text-muted">{{ transaction.receiver?.uid }}</small>
+                            <small class="text-muted">{{ transaction.receiver?.uid || transaction.receiver?.email }}</small>
                           </div>
                           <div v-else>
                             <small class="text-muted d-block">From:</small>
                             <strong>{{ transaction.sender?.name }}</strong>
                             <br />
-                            <small class="text-muted">{{ transaction.sender?.uid }}</small>
+                            <small class="text-muted">{{ transaction.sender?.uid || transaction.sender?.email }}</small>
                           </div>
                         </td>
                         <td>
@@ -114,7 +114,8 @@
                           </span>
                         </td>
                         <td>
-                          <span class="text-muted">${{ transaction.commission_fee }}</span>
+                          <span v-if="transaction.commission_fee" class="text-muted">${{ transaction.commission_fee }}</span>
+                          <span v-else class="text-muted">-</span>
                         </td>
                         <td>
                           <span :class="getStatusBadgeClass(transaction.status)" class="badge">
@@ -212,9 +213,9 @@ const filteredTransactions = computed(() => {
   if (filterDirection.value) {
     transactions = transactions.filter(t => {
       if (filterDirection.value === 'sent') {
-        return t.sender?.uid === authStore.user?.uid
+        return isSentByCurrentUser(t)
       } else if (filterDirection.value === 'received') {
-        return t.receiver?.uid === authStore.user?.uid
+        return isReceivedByCurrentUser(t)
       }
       return true
     })
@@ -222,6 +223,22 @@ const filteredTransactions = computed(() => {
 
   return transactions
 })
+
+function isSentByCurrentUser(transaction) {
+  // Check by uid if both exist, otherwise check by email
+  if (transaction.sender?.uid && authStore.user?.uid) {
+    return transaction.sender.uid === authStore.user.uid
+  }
+  return transaction.sender?.email === authStore.user?.email
+}
+
+function isReceivedByCurrentUser(transaction) {
+  // Check by uid if both exist, otherwise check by email
+  if (transaction.receiver?.uid && authStore.user?.uid) {
+    return transaction.receiver.uid === authStore.user.uid
+  }
+  return transaction.receiver?.email === authStore.user?.email
+}
 
 onMounted(() => {
   walletStore.fetchTransactions()
@@ -253,14 +270,14 @@ function getStatusBadgeClass(status) {
 }
 
 function getAmountClass(transaction) {
-  if (transaction.sender?.uid === authStore.user?.uid) {
+  if (isSentByCurrentUser(transaction)) {
     return 'text-danger'
   }
   return 'text-success'
 }
 
 function getAmountPrefix(transaction) {
-  if (transaction.sender?.uid === authStore.user?.uid) {
+  if (isSentByCurrentUser(transaction)) {
     return '- '
   }
   return '+ '

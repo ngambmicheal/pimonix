@@ -87,13 +87,47 @@ docker-compose exec backend php artisan migrate --seed
 - Frontend: http://localhost:5173
 - MySQL: localhost:3306
 
-## 🔑 Pusher Setup
+## 🔑 Real-Time Broadcasting Setup
+
+### Option 1: Laravel Echo Server (Local Development - No External Service Required)
+
+The project includes Laravel Echo Server with Socket.io for local development:
+
+1. **Using Docker (Recommended):**
+   ```bash
+   docker-compose up -d
+   ```
+   Services included: MySQL, Laravel, Vue.js, Redis, Echo Server
+
+2. **Configuration (already set in `.env.example`):**
+
+   Backend `.env`:
+   ```env
+   BROADCAST_CONNECTION=redis
+   REDIS_CLIENT=predis
+   REDIS_HOST=redis
+   ```
+
+   Frontend `.env`:
+   ```env
+   VITE_USE_SOCKET_IO=true
+   VITE_ECHO_SERVER_HOST=localhost:6001
+   ```
+
+3. **Access:**
+   - Frontend: http://localhost:5173
+   - Backend: http://localhost:8000
+   - Echo Server: http://localhost:6001
+
+📖 **Detailed Guide:** See [ECHO_SERVER_SETUP.md](./ECHO_SERVER_SETUP.md) for complete instructions
+
+### Option 2: Pusher (Production)
 
 1. Create a free account at [pusher.com](https://pusher.com)
 2. Create a new Channels app
 3. Copy credentials to backend `.env`:
    ```env
-   BROADCAST_DRIVER=pusher
+   BROADCAST_CONNECTION=pusher
    PUSHER_APP_ID=your-app-id
    PUSHER_APP_KEY=your-app-key
    PUSHER_APP_SECRET=your-app-secret
@@ -101,6 +135,7 @@ docker-compose exec backend php artisan migrate --seed
    ```
 4. Copy key to frontend `.env`:
    ```env
+   VITE_USE_SOCKET_IO=false
    VITE_PUSHER_APP_KEY=your-app-key
    VITE_PUSHER_APP_CLUSTER=your-cluster
    ```
