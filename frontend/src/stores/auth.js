@@ -32,7 +32,13 @@ export const useAuthStore = defineStore('auth', () => {
       setAuth(response.data.user, response.data.token)
       return response.data
     } catch (err) {
-      error.value = err.response?.data?.message || 'Registration failed'
+      // Handle validation errors
+      if (err.response?.data?.errors) {
+        const errors = err.response.data.errors
+        error.value = Object.values(errors).flat().join(', ')
+      } else {
+        error.value = err.response?.data?.message || 'Registration failed'
+      }
       throw err
     } finally {
       loading.value = false
@@ -47,7 +53,13 @@ export const useAuthStore = defineStore('auth', () => {
       setAuth(response.data.user, response.data.token)
       return response.data
     } catch (err) {
-      error.value = err.response?.data?.message || 'Login failed'
+      // Handle validation errors
+      if (err.response?.data?.errors) {
+        const errors = err.response.data.errors
+        error.value = Object.values(errors).flat().join(', ')
+      } else {
+        error.value = err.response?.data?.message || 'Login failed'
+      }
       throw err
     } finally {
       loading.value = false

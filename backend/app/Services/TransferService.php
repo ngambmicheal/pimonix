@@ -130,12 +130,18 @@ class TransferService
      */
     public function getTransactionHistory(User $user, int $perPage = 20)
     {
-        return Transaction::where(function ($query) use ($user) {
+        $query = Transaction::where(function ($query) use ($user) {
             $query->where('sender_id', $user->id)
                   ->orWhere('receiver_id', $user->id);
-        })
-        ->with(['sender', 'receiver'])
-        ->orderBy('created_at', 'desc')
-        ->paginate($perPage);
+        });
+
+        // If user is not admin, exclude commission transactions
+        if (!$user->is_admin) {
+            $query->where('type', '!=', 'commission');
+        }
+
+        return $query->with(['sender', 'receiver'])
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
     }
 }

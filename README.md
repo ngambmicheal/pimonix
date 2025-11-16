@@ -166,24 +166,31 @@ After running seeders, you'll have these test accounts:
 **Views:**
 - `/login` - User login
 - `/register` - User registration
-- `/wallet` - Main wallet dashboard
+- `/dashboard` - Main dashboard with stats and quick transfer
+- `/transactions` - Full transaction history with filters
 
 **Components:**
+- `AppHeader.vue` - Navigation header with menu and user info
+- `AppLayout.vue` - Layout wrapper with header and footer
+- `TransferForm.vue` - Send money form (supports compact mode)
 - `BalanceCard.vue` - Display current balance
-- `TransferForm.vue` - Send money form
 - `TransactionList.vue` - Transaction history table
 
 ## 💡 Usage
 
 1. **Register/Login**: Create an account or login with test credentials
-2. **Check Balance**: View your current balance on the wallet page
-3. **Send Money**:
+2. **Dashboard**: View your stats including balance, total transactions, and total spent
+3. **Quick Transfer**: Use the quick transfer form on the dashboard to send money
    - Enter receiver's user ID (2, 3, 4, 5, or 6 for test users)
    - Enter amount
    - Commission (1.5%) will be calculated automatically
    - Click "Send Money"
-4. **View History**: All transactions appear in the table below
-5. **Real-time Updates**: Open two browser windows with different users logged in and watch transactions appear instantly!
+4. **Recent Activity**: See your last 5 transactions on the dashboard
+5. **Full Transaction History**: Click "Transactions" in the menu to view all transactions
+   - Use search to find specific transactions
+   - Filter by type (Transfers, Commissions)
+   - Filter by direction (Sent, Received)
+6. **Real-time Updates**: Open two browser windows with different users logged in and watch transactions appear instantly!
 
 ## 🔐 Security Features
 

@@ -21,20 +21,24 @@ class TransactionController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        $transactions = $this->transferService->getTransactionHistory($user);
+        $perPage = $request->input('per_page', 20);
+        $transactions = $this->transferService->getTransactionHistory($user, $perPage);
 
         return response()->json([
             'balance' => number_format($user->balance, 2, '.', ''),
             'user' => [
                 'uid' => $user->uid,
                 'name' => $user->name,
+                'email' => $user->email,
             ],
             'transactions' => TransactionResource::collection($transactions->items()),
-            'meta' => [
+            'pagination' => [
                 'current_page' => $transactions->currentPage(),
                 'total' => $transactions->total(),
                 'per_page' => $transactions->perPage(),
                 'last_page' => $transactions->lastPage(),
+                'from' => $transactions->firstItem(),
+                'to' => $transactions->lastItem(),
             ],
         ]);
     }

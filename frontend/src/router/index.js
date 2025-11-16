@@ -6,7 +6,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/wallet'
+      redirect: '/dashboard'
     },
     {
       path: '/login',
@@ -21,9 +21,15 @@ const router = createRouter({
       meta: { guest: true }
     },
     {
-      path: '/wallet',
-      name: 'wallet',
-      component: () => import('../views/WalletView.vue'),
+      path: '/dashboard',
+      name: 'dashboard',
+      component: () => import('../views/DashboardView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/transactions',
+      name: 'transactions',
+      component: () => import('../views/TransactionsView.vue'),
       meta: { requiresAuth: true }
     }
   ]
@@ -36,7 +42,7 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/login')
   } else if (to.meta.guest && authStore.isAuthenticated) {
-    next('/wallet')
+    next('/dashboard')
   } else {
     next()
   }

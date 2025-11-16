@@ -18,6 +18,16 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::post('/logout', [LoginController::class, 'logout']);
 
+    // User routes
+    Route::get('/users', function (Request $request) {
+        $users = \App\Models\User::where('id', '!=', $request->user()->id)
+            ->where('is_admin', false)
+            ->select('id', 'uid', 'name', 'email')
+            ->get();
+
+        return UserResource::collection($users);
+    });
+
     // Transaction routes
     Route::get('/transactions', [TransactionController::class, 'index']);
     Route::post('/transactions', [TransactionController::class, 'store']);

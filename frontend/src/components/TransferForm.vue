@@ -1,7 +1,7 @@
 <template>
-  <div class="card">
-    <div class="card-body">
-      <h5 class="card-title">Send Money</h5>
+  <div :class="compact ? '' : 'card'">
+    <div :class="compact ? '' : 'card-body'">
+      <h5 v-if="!compact" class="card-title">Send Money</h5>
 
       <div v-if="walletStore.error" class="alert alert-danger alert-dismissible fade show">
         {{ walletStore.error }}
@@ -62,6 +62,13 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useWalletStore } from '../stores/wallet'
+
+const props = defineProps({
+  compact: {
+    type: Boolean,
+    default: false
+  }
+})
 
 const emit = defineEmits(['transfer-sent'])
 const walletStore = useWalletStore()

@@ -16,9 +16,9 @@ export const useWalletStore = defineStore('wallet', () => {
     try {
       const response = await transactionAPI.getTransactions(page)
       balance.value = response.data.balance
-      transactions.value = response.data.transactions.data
-      currentPage.value = response.data.transactions.meta.current_page
-      totalPages.value = response.data.transactions.meta.last_page
+      transactions.value = response.data.transactions
+      currentPage.value = response.data.pagination.current_page
+      totalPages.value = response.data.pagination.last_page
       return response.data
     } catch (err) {
       error.value = err.response?.data?.message || 'Failed to fetch transactions'
@@ -45,7 +45,13 @@ export const useWalletStore = defineStore('wallet', () => {
 
       return response.data
     } catch (err) {
-      error.value = err.response?.data?.error || err.response?.data?.message || 'Transfer failed'
+      // Handle validation errors
+      if (err.response?.data?.errors) {
+        const errors = err.response.data.errors
+        error.value = Object.values(errors).flat().join(', ')
+      } else {
+        error.value = err.response?.data?.error || err.response?.data?.message || 'Transfer failed'
+      }
       throw err
     } finally {
       loading.value = false

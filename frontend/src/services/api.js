@@ -43,6 +43,10 @@ export const authAPI = {
   getUser: () => api.get('/user')
 }
 
+export const userAPI = {
+  getUsers: () => api.get('/users')
+}
+
 export const transactionAPI = {
   getTransactions: (page = 1) => api.get(`/transactions?page=${page}`),
   createTransfer: (data) => api.post('/transactions', data)
